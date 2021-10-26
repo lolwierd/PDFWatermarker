@@ -41,15 +41,8 @@ namespace PDFWatermarker
                 fsWatch.EnableRaisingEvents = false;
             }
 
-            /*while (!stoppingToken.IsCancellationRequested)
-            {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await Task.Delay(10000, stoppingToken);
-            }
-            */
         }
 
-        // TODO: Overwrite file and do not call watermark on same file twice.
         private async void FsWatch_Created(object sender, FileSystemEventArgs e)
         {
             _logger.LogInformation(string.Format("{0:G} | {1} | {2}",
