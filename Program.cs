@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,33 @@ namespace PDFWatermarker
 {
     public class Program
     {
+
+        private static PATH_TO_CHECK_CLASS PATH = new PATH_TO_CHECK_CLASS { PATH_TO_CHECK = string.Format(@"{0}\Documents\Scanned", Environment.GetEnvironmentVariable("USERPROFILE")) };
         public static void Main(string[] args)
         {
+            CheckRegistryExists();
             CreateHostBuilder(args).Build().Run();
+        }
+
+        private static void CheckRegistryExists()
+        {
+            using (RegistryKey readKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\PDFWatermarker"))
+            {
+                if (readKey != null)
+                {
+                    Object o = readKey.GetValue("PATH_TO_CHECK");
+                    Console.WriteLine(o.ToString());
+                    PATH.PATH_TO_CHECK = o.ToString();
+                }
+                else
+                {
+                    using RegistryKey writeKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\PDFWatermarker");
+
+                    writeKey.SetValue("PATH_TO_CHECK", PATH.PATH_TO_CHECK);
+                }
+            }
+
+           
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -21,6 +46,12 @@ namespace PDFWatermarker
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddHostedService<Worker>();
+                    services.AddSingleton(PATH);
                 });
+
+        public class PATH_TO_CHECK_CLASS  {
+            public string PATH_TO_CHECK { get; set; }
+            public string PATH_TO_SAVE { get; set; }
+        }
     }
 }

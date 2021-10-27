@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
-
+using static PDFWatermarker.Program;
 
 namespace PDFWatermarker
 {
@@ -15,21 +15,23 @@ namespace PDFWatermarker
     {
         private readonly ILogger<Worker> _logger;
         private FileSystemWatcher fsWatch;
+        private readonly PATH_TO_CHECK_CLASS PATH;
 
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, PATH_TO_CHECK_CLASS PATH)
         {
             _logger = logger;
+            this.PATH = PATH; 
          
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-            _logger.LogInformation("Watching File System at " + @"C:\Users\dev\Documents\Scanned");
+            _logger.LogInformation("Watching File System at " + PATH.PATH_TO_CHECK);
             fsWatch = new FileSystemWatcher
             {
-                Path = @"C:\Users\dev\Documents\Scanned",
+                Path = PATH.PATH_TO_CHECK,
                 NotifyFilter = NotifyFilters.FileName,
                 Filter = "*.pdf"
             };
