@@ -9,5 +9,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.19" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="3.1.19" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageReference Include="PdfSharp" Version="1.50.5147" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
 </Project>

@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 using static PDFWatermarker.Program;
+using PdfSharp.Pdf;
+using PdfSharp.Pdf.IO;
+using PdfSharp.Drawing;
 
 namespace PDFWatermarker
 {
@@ -22,7 +25,7 @@ namespace PDFWatermarker
         {
             _logger = logger;
             this.PATH = PATH;
-         
+
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -35,7 +38,7 @@ namespace PDFWatermarker
                 NotifyFilter = NotifyFilters.FileName,
                 Filter = "*.pdf"
             };
-            fsWatch.Created  +=  FsWatch_Created;
+            fsWatch.Created += FsWatch_Created;
             fsWatch.EnableRaisingEvents = true;
 
             while (stoppingToken.IsCancellationRequested)
@@ -49,64 +52,65 @@ namespace PDFWatermarker
         {
             _logger.LogInformation(string.Format("{0:G} | {1} | {2}",
                 DateTime.Now, e.FullPath, e.ChangeType));
-            await Task.Run(() => StartWatermarkProcessGO(e.FullPath));
-            
-        }
-        private async void StartWatermarkProcessGO(string filename)
-        {
-            Console.WriteLine(filename);
-            ProcessStartInfo startInfo = new ProcessStartInfo
-            {
-                CreateNoWindow = false,
-                UseShellExecute = false,
-                FileName = "pdfcpu.exe",
-                WindowStyle = ProcessWindowStyle.Hidden,
-                Arguments = string.Format("stamp add -v -mode text -- \"*SCANNED*\" \"points:4, sc:0.2, rot:0, pos:tl, fillc:#000000\" \"{0}\"", filename)
-            };
+            await Task.Run(() => WaterMarkPDF(e.FullPath));
 
+        }
+
+        public async void WaterMarkPDF(string filename)
+        {
             try
             {
-                using Process exeProcess = Process.Start(startInfo);
-                exeProcess.WaitForExit();
-                Console.WriteLine(exeProcess.ExitCode);
-                if(exeProcess.ExitCode == 1)
+                string watermark = string.Format("-- SCANNED at {0:G} --", DateTime.Now);
+                int emSize = 10;
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
+                File.SetAttributes(filename, File.GetAttributes(filename) & ~FileAttributes.ReadOnly);
+
+                PdfDocument document = PdfReader.Open(filename);
+
+                // change the version cause sometimes newer versions break it
+                if (document.Version < 14)
+                    document.Version = 14;
+
+                _logger.LogInformation(string.Format("Starting Watermarking process for {0}", filename));
+
+
+                XFont font = new XFont("Calibri", emSize, XFontStyle.Bold);
+                for (int idx = 0; idx < document.Pages.Count; idx++)
                 {
-                    await Task.Delay(3000);
-                    StartWatermarkProcessGO(filename);
+                    _logger.LogInformation(string.Format("Working for page: {0}", idx));
+
+                    var page = document.Pages[idx];
+                    var gfx = XGraphics.FromPdfPage(page, XGraphicsPdfPageOptions.Append);
+                    var size = gfx.MeasureString(watermark, font);
+
+                    var format = new XStringFormat();
+                    format.Alignment = XStringAlignment.Near;
+                    format.LineAlignment = XLineAlignment.Near;
+
+                    XBrush brush = new XSolidBrush(XColor.FromArgb(255, 0, 0, 0));
+
+                    gfx.DrawString(watermark, font, brush,
+                        new XPoint((size.Width)/4, (size.Height)/2),
+                        format);
+
                 }
+                _logger.LogInformation("Watermarking done. Now saving file");
+                document.Save(filename);
+                _logger.LogInformation(string.Format("File saved at {0}", filename));
+
             }
             catch (Exception e)
             {
                 _logger.LogError(string.Format("Some Error Occured while converting {0}", filename));
                 _logger.LogError(e.Message);
                 _logger.LogError(e.StackTrace);
-               //await Task.Delay(3000);
-               //StartWatermarkProcessGO(filename);
-
-            }
-        }
-        private void StartWatermarkProcess(string filename)
-        {
-            Console.WriteLine(filename);
-            ProcessStartInfo startInfo = new ProcessStartInfo
-            {
-                CreateNoWindow = false,
-                UseShellExecute = false,
-                FileName = "add_watermark.exe",
-                WindowStyle = ProcessWindowStyle.Hidden,
-                Arguments = string.Format("\"{0}\"", filename)
-            };
-
-            try
-            {
-                using Process exeProcess = Process.Start(startInfo);
-                exeProcess.WaitForExit();
-            }
-            catch
-            {
-                _logger.LogError(string.Format("Some Error Occured while converting {0}", filename));
+                _logger.LogInformation("Retrying in 3 seconds!!");
+                await Task.Delay(3000);
+                WaterMarkPDF(filename);
             }
 
         }
+
     }
 }
