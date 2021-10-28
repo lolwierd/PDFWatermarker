@@ -13,6 +13,7 @@ namespace PDFWatermarker
     {
 
         private static PATH_TO_CHECK_CLASS PATH = new PATH_TO_CHECK_CLASS { PATH_TO_CHECK = string.Format(@"{0}\Documents\Scanned", Environment.GetEnvironmentVariable("USERPROFILE")) };
+        private static readonly RegistryKey rb = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
         public static void Main(string[] args)
         {
             CheckRegistryExists();
@@ -21,7 +22,7 @@ namespace PDFWatermarker
 
         private static void CheckRegistryExists()
         {
-            using (RegistryKey readKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\PDFWatermarker"))
+            using (RegistryKey readKey = rb.OpenSubKey(@"SOFTWARE\PDFWatermarker"))
             {
                 if (readKey != null)
                 {
@@ -31,7 +32,7 @@ namespace PDFWatermarker
                 }
                 else
                 {
-                    using RegistryKey writeKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\PDFWatermarker");
+                    using RegistryKey writeKey = rb.CreateSubKey(@"SOFTWARE\PDFWatermarker");
 
                     writeKey.SetValue("PATH_TO_CHECK", PATH.PATH_TO_CHECK);
                 }
