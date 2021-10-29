@@ -30,8 +30,8 @@ namespace PDFWatermarker
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogDebug("Worker running at: {time}", DateTimeOffset.Now);
-            _logger.LogDebug("Watching File System at " + PATH.PATH_TO_CHECK);
+            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+            _logger.LogInformation("Watching File System at " + PATH.PATH_TO_CHECK);
             fsWatch = new FileSystemWatcher
             {
                 Path = PATH.PATH_TO_CHECK,
@@ -50,7 +50,7 @@ namespace PDFWatermarker
 
         private async void FsWatch_Created(object sender, FileSystemEventArgs e)
         {
-            _logger.LogDebug(string.Format("{0:G} | {1} | {2}",
+            _logger.LogInformation(string.Format("{0:G} | {1} | {2}",
                 DateTime.Now, e.FullPath, e.ChangeType));
             await Task.Run(() => WaterMarkPDF(e.FullPath));
 
@@ -72,13 +72,13 @@ namespace PDFWatermarker
                 if (document.Version < 14)
                     document.Version = 14;
 
-                _logger.LogDebug(string.Format("Starting Watermarking process for {0}", filename));
+                _logger.LogInformation(string.Format("Starting Watermarking process for {0}", filename));
 
 
                 XFont font = new XFont("Calibri", emSize, XFontStyle.Bold);
                 for (int idx = 0; idx < document.Pages.Count; idx++)
                 {
-                    _logger.LogDebug(string.Format("Working for page: {0}", idx));
+                    _logger.LogInformation(string.Format("Working for page: {0}", idx));
 
                     var page = document.Pages[idx];
                     var gfx = XGraphics.FromPdfPage(page, XGraphicsPdfPageOptions.Append);
@@ -95,9 +95,9 @@ namespace PDFWatermarker
                         format);
 
                 }
-                _logger.LogDebug("Watermarking done. Now saving file");
+                _logger.LogInformation("Watermarking done. Now saving file");
                 document.Save(filename);
-                _logger.LogDebug(string.Format("File saved at {0}", filename));
+                _logger.LogInformation(string.Format("File saved at {0}", filename));
 
             }
             catch (Exception e)
@@ -105,7 +105,7 @@ namespace PDFWatermarker
                 _logger.LogError(string.Format("Some Error Occured while converting {0}", filename));
                 _logger.LogError(e.Message);
                 _logger.LogError(e.StackTrace);
-                _logger.LogDebug("Retrying in 3 seconds!!");
+                _logger.LogInformation("Retrying in 3 seconds!!");
                 await Task.Delay(3000);
                 WaterMarkPDF(filename);
             }
