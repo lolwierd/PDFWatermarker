@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+ 
 namespace PDFWatermarker
 {
     public class Program
@@ -37,8 +37,6 @@ namespace PDFWatermarker
                     writeKey.SetValue("PATH_TO_CHECK", PATH.PATH_TO_CHECK);
                 }
             }
-
-           
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
