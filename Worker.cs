@@ -35,7 +35,7 @@ namespace PDFWatermarker
             {
                 Path = PATH.PATH_TO_CHECK,
                 NotifyFilter = NotifyFilters.FileName,
-                Filter = "*.pdf"
+                Filter = "SCANNED-*.pdf"
             };
             fsWatch.Created += FsWatch_Created;
             fsWatch.EnableRaisingEvents = true;
