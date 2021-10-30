@@ -25,7 +25,6 @@ namespace PDFWatermarker
         {
             _logger = logger;
             this.PATH = PATH;
-
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -36,7 +35,7 @@ namespace PDFWatermarker
             {
                 Path = PATH.PATH_TO_CHECK,
                 NotifyFilter = NotifyFilters.FileName,
-                Filter = "*.pdf"
+                Filter = "SCANNED-*.pdf"
             };
             fsWatch.Created += FsWatch_Created;
             fsWatch.EnableRaisingEvents = true;
@@ -60,7 +59,7 @@ namespace PDFWatermarker
         {
             try
             {
-                string watermark = string.Format("-- SCANNED at {0:G} --", DateTime.Now);
+                string watermark = string.Format("-- SCANNED --");
                 int emSize = 10;
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
@@ -95,18 +94,18 @@ namespace PDFWatermarker
                         format);
 
                 }
-                _logger.LogInformation("Watermarking done. Now saving file");
+                _logger.LogInformation(">> Watermarking done. Now saving file");
                 document.Save(filename);
                 _logger.LogInformation(string.Format("File saved at {0}", filename));
 
             }
             catch (Exception e)
             {
-                _logger.LogError(string.Format("Some Error Occured while converting {0}", filename));
-                _logger.LogError(e.Message);
-                _logger.LogError(e.StackTrace);
-                _logger.LogInformation("Retrying in 3 seconds!!");
-                await Task.Delay(3000);
+                _logger.LogWarning(string.Format("Some Error Occured while converting {0}", filename));
+                _logger.LogWarning(e.Message);
+                _logger.LogWarning(e.StackTrace);
+                _logger.LogInformation(">> Dont't worry, Retrying in 3.5 seconds!!");
+                await Task.Delay(3500);
                 WaterMarkPDF(filename);
             }
 
